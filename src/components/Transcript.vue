@@ -1,9 +1,9 @@
 <template>
   <div class="transcript-wrapper">
     <div class="nav">
-      <i class="fas fa-times" @click="toggleAudio" />
+      <i class="fas fa-times" />
       <span>{{ date }}</span>
-      <i class="fas fa-ellipsis-v" @click="log(isPlaying)"></i>
+      <i class="fas fa-ellipsis-v" />
     </div>
 
     <div class="phrases">
@@ -16,11 +16,7 @@
       />
     </div>
 
-    <audio-player 
-      class="audio-player" 
-      :playerid="1"
-      :selected-play-time="selectedPlayTime"
-    />
+    <audio-player class="audio-player" />
   </div>
 </template>
 
@@ -33,8 +29,9 @@ export default {
   name: 'Transcript',
   data() {
     return {
-      selectedPlayTime: 0,
+      //Transcript Date
       date: 'Jan. 14, 2021',
+      //Transcript
       transcript: {
         "phrases": [
           {
@@ -78,28 +75,34 @@ export default {
   },
 
   computed: {
+    //Returns Vuex State "playbackTime"
     playbackTime() {
       return this.$store.state.playbackTime;
     },
 
+    //Returns Vuex State "isPlaying"
     isPlaying() {
       return this.$store.state.isPlaying;
     },
 
+    // Sorts phrases by start time.
+    // Checks for overlapping phrases.
+    // Removes overlapping sub string from one of the phrases being compared.
+    // Updates phrase 'len' property to reflect the new length based on the start time of the subsquent phrase
     formattedPhrases() {
       const phrases = this.sortPhrases(this.transcript.phrases);
       for (let i = 0; i < phrases.length - 1; i++) {
-        // Compares Phrase and the current index and the subsequent phrase
+        //Compares Phrase and the current index and the subsequent phrase
         if (this.isOverlappingPhrasePair(phrases[i], phrases[i + 1])) {
           const phraseA = phrases[i]
           const phraseB = phrases[i + 1]
           const overlapLength = (phraseA.len + phraseA.start) - phraseB.start
 
-          // Trimms off overlapping time segments off of phraseA's len property 
+          //Trimms off overlapping time segments off of phraseA's len property 
           phrases[i].len -= overlapLength
 
-          // Finds the longest common prefix that could be overlapping 
-          // and removes it from the first compared phrase
+          //Finds the longest common prefix that could be overlapping 
+          //and removes it from the first compared phrase
           phrases[i].text = this.removeOverlappingSubstring(phraseA.text, phraseB.text)
         }
       }
@@ -108,27 +111,18 @@ export default {
   },
 
   methods: {
-    toggleAudio() {
-      this.$store.commit("toggleAudio");
-    },
-
+    //Sets Vuex Store "isPlaying" to true.
     playAudio() {
       this.$store.commit("playAudio");
     },
 
-    pauseAudio() {
-      this.$store.commit("pauseAudio");
-    },
-
-    log(stuff){
-      console.log(stuff);
-    },
-
+    //When a phrase is clicked, the player will start playing from that phrases start time.
     selectPhrase(time) {
       this.playAudio();
       this.updatePlaybackTime(time);
     },
 
+    //Sets Vuex Store "playbackTime" to an updated time
     updatePlaybackTime(time) {
       this.$store.commit("updatePlaybackTime", time);
     },
@@ -138,7 +132,7 @@ export default {
       return phrases.sort((a, b) => a.start - b.start)
     },
 
-    //checks if
+    //checks if two compared phrases overlap based on start times and duration of segments
     isOverlappingPhrasePair(phraseA, phraseB) {
       return (
         phraseA.start < phraseB.start && 

@@ -1,7 +1,7 @@
 <template>
 	<div id="audio-player-root">
 		<!-- Hide the default audio player -->
-    <audio style="display: none" ref="player" :id="playerid">
+    <audio style="display: none" ref="player" :id="1">
       <source :src="src" type="audio/mpeg" />
     </audio>
 
@@ -31,7 +31,6 @@
         />
 
         <!-- Show loading indicator until audio has been loaded -->
-
         <div
           v-if="!audioLoaded"
           class="loading"
@@ -53,15 +52,7 @@
 </template>
 
 <script>
-// import { Vuex } from 'vuex'
 export default {
-	props: ["playerid", "selectedPlayTime"],
-	/**
-	 * playbackTime = local const that syncs to audio.currentTime
-	 * audioDuration = duration of audio file in seconds
-	 * isPlaying = boolean (true if audio is playing)
-	 *
-	 **/
 	data() {
 		return {
 			audioDuration: 100,
@@ -69,6 +60,7 @@ export default {
       src: require("../assets/audio.wav")
 		};
   },
+
   computed: {
     playbackTime: {
       get() {
@@ -83,30 +75,22 @@ export default {
       return this.$store.state.isPlaying;
     },  
   },
-	methods: {
-    handleSlider(e) {
-      console.log(e)
-    },
 
+	methods: {
+    //Updates Vuex Store "playbackTime" with new playback time
     updatePlaybackTime(time) {
       this.$store.commit("updatePlaybackTime", time);
     },
 
-    toggleAudio() {
-      const audio = this.$refs.player;
-			if (audio.paused) {
-				audio.play();
-			} else {
-				audio.pause();
-			}
-      this.$store.commit("toggleAudio");
-    },
-
+    //Sets Vuex Store "isPlaying" to true
+    //Plays audio player
     playAudio() {
       this.$refs.player.play()
       this.$store.commit("playAudio")
     },
 
+    //Sets Vuex Store "isPlaying" to false
+    //Pauses audio player
     pauseAudio() {
       this.$refs.player.pause()
       this.$store.commit("pauseAudio")
@@ -214,7 +198,6 @@ export default {
 					//prevent starting multiple listeners at the same time
 					if (!this.listenerActive) {
 						this.listenerActive = true;
-						//for a more consistent timeupdate, include freqtimeupdate.js and replace both instances of 'timeupdate' with 'freqtimeupdate'
 						audio.addEventListener("timeupdate", this.playbackListener);
 					}
 				} else {
@@ -273,7 +256,7 @@ input[type="range"] {
 	width: 100%;
 	cursor: pointer;
 	outline: none;
-	border-radius: 0; /* iOS */
+	border-radius: 0;
 	background: transparent;
 }
 
@@ -290,7 +273,7 @@ input[type="range"]:focus {
 	width: 8px;
 	height: 8px;
 	background: #fff;
-	box-shadow: -100vw 0 0 100vw #ff6d6d;
+  box-shadow: -100vw 0 0 100vw #ff6d6d;
 	border: 2px solid rgb(0, 0, 0);
 }
 
@@ -305,7 +288,6 @@ input[type="range"]:focus {
 	width: 8px;
 	border: 3px solid #999;
 	border-radius: 100% !important;
-	/* box-shadow: -100vw 0 0 100vw #ff6d6d; */
 	box-sizing: border-box;
 }
 
