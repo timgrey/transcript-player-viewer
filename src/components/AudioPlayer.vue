@@ -10,13 +10,13 @@
         <i
           v-if="isPlaying"
           class='fas fa-pause'
-          @click="toggleAudio()"
+          @click="pauseAudio"
         />
 
         <i
           v-else
           class='fas fa-play'
-          @click="toggleAudio()"
+          @click="playAudio"
         />
       </div>
 
@@ -53,7 +53,7 @@
 </template>
 
 <script>
-//import { mapState } from 'vuex'
+// import { Vuex } from 'vuex'
 export default {
 	props: ["playerid", "selectedPlayTime"],
 	/**
@@ -64,14 +64,54 @@ export default {
 	 **/
 	data() {
 		return {
-			playbackTime: 0,
 			audioDuration: 100,
 			audioLoaded: false,
-      isPlaying: false,
       src: require("../assets/audio.wav")
 		};
-	},
+  },
+  computed: {
+    playbackTime: {
+      get() {
+        return this.$store.state.playbackTime;
+      },
+      set(time) {
+        this.$store.commit("updatePlaybackTime", time);
+      }
+    },
+
+    isPlaying() {
+      return this.$store.state.isPlaying;
+    },  
+  },
 	methods: {
+    handleSlider(e) {
+      console.log(e)
+    },
+
+    updatePlaybackTime(time) {
+      this.$store.commit("updatePlaybackTime", time);
+    },
+
+    toggleAudio() {
+      const audio = this.$refs.player;
+			if (audio.paused) {
+				audio.play();
+			} else {
+				audio.pause();
+			}
+      this.$store.commit("toggleAudio");
+    },
+
+    playAudio() {
+      this.$refs.player.play()
+      this.$store.commit("playAudio")
+    },
+
+    pauseAudio() {
+      this.$refs.player.pause()
+      this.$store.commit("pauseAudio")
+    },
+
 		//Set the range slider max value equal to audio duration
 		initSlider() {
 			const audio = this.$refs.player;
@@ -109,12 +149,11 @@ export default {
 			}
     },
     
-		//Playback listener function runs every 100ms while audio is playing
+		// //Playback listener function runs every 100ms while audio is playing
 		playbackListener() {
 			const audio = this.$refs.player;
-			//Sync local 'playbackTime' const to audio.currentTime and update global state
-      this.playbackTime = audio.currentTime;
-      this.$emit('updatePlaybackTime', this.playbackTime)
+      //Sync local 'playbackTime' const to audio.currentTime and update global state
+      this.updatePlaybackTime(audio.currentTime);
 
 			//Add listeners for audio pause and audio end events
 			audio.addEventListener("ended", this.endListener);
@@ -123,14 +162,14 @@ export default {
     
 		//Function to run when audio is paused by user
 		pauseListener() {
-			this.isPlaying = false;
+			this.pauseAudio();
 			this.listenerActive = false;
 			this.cleanupListeners();
     },
     
 		//Function to run when audio play reaches the end of file
 		endListener() {
-			this.isPlaying = false;
+			this.pauseAudio();
 			this.listenerActive = false;
 			this.cleanupListeners();
     },
@@ -142,17 +181,6 @@ export default {
 			audio.removeEventListener("ended", this.endListener);
 			audio.removeEventListener("pause", this.pauseListener);
     },
-    
-		toggleAudio() {
-			const audio = this.$refs.player;
-			if (audio.paused) {
-				audio.play();
-				this.isPlaying = true;
-			} else {
-				audio.pause();
-				this.isPlaying = false;
-			}
-		},
   },
   
 	mounted: function () {
@@ -160,7 +188,7 @@ export default {
 		this.$nextTick(function () {
       const audio = this.$refs.player;
       
-			//Wait for audio to load, then run initSlider() to get audio duration and set the max value of our slider
+			// Wait for audio to load, then run initSlider() to get audio duration and set the max value of our slider
 			// "loademetadata" Event https://www.w3schools.com/tags/av_event_loadedmetadata.asp
 			audio.addEventListener(
 				"loadedmetadata",
@@ -179,8 +207,9 @@ export default {
       
 			//Wait for audio to begin play, then start playback listener function
 			this.$watch("isPlaying", function () {
+        const audio = this.$refs.player;
 				if (this.isPlaying) {
-					const audio = this.$refs.player;
+          audio.play();
 					this.initSlider();
 					//prevent starting multiple listeners at the same time
 					if (!this.listenerActive) {
@@ -188,7 +217,9 @@ export default {
 						//for a more consistent timeupdate, include freqtimeupdate.js and replace both instances of 'timeupdate' with 'freqtimeupdate'
 						audio.addEventListener("timeupdate", this.playbackListener);
 					}
-				}
+				} else {
+          audio.pause();
+        }
       });
       
 			//Update current audio position when user drags progress slider
@@ -200,13 +231,6 @@ export default {
 					this.$refs.player.currentTime = this.playbackTime;
 				}
       });
-      
-      //Update current audio position when user drags progress slider
-			this.$watch("selectedPlayTime", function () {
-        if (this.selectedPlayTime) {
-          this.playbackTime = this.selectedPlayTime
-        }
-			});
 		});
 	},
 };

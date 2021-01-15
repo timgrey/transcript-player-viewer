@@ -33,7 +33,6 @@ export default {
       type: Object,
       required: true,
     },
-    playbackTime: Number
   },
 
   data() {
@@ -44,6 +43,10 @@ export default {
   },
 
   computed: {
+    playbackTime() {
+      return this.$store.state.playbackTime;
+    },
+
     phraseStartTime() {
       let seconds = Math.round(this.phrase.start);
       const minutes = Math.floor(this.phrase.start / 60);
@@ -85,7 +88,11 @@ export default {
       return ("0"+num).slice(-2);
     },
     isActiveWord(word) {
-      return this.playbackTime > word.start && (word.start + word.len) > this.playbackTime;
+      return (
+        this.isActivePhrase &&
+        this.playbackTime > word.start && 
+        (word.start + word.len) > this.playbackTime
+      );
     },
   }
 }

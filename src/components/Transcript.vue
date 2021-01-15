@@ -1,9 +1,9 @@
 <template>
   <div class="transcript-wrapper">
     <div class="nav">
-      <i class="fas fa-times" />
+      <i class="fas fa-times" @click="toggleAudio" />
       <span>{{ date }}</span>
-      <i class="fas fa-ellipsis-v"></i>
+      <i class="fas fa-ellipsis-v" @click="log(isPlaying)"></i>
     </div>
 
     <div class="phrases">
@@ -12,7 +12,6 @@
         :key="`phrase-${i}`"
         class="phrase"
         :phrase="phrase"
-        :playback-time="playbackTime"
         @click="selectPhrase(phrase.start)"
       />
     </div>
@@ -21,7 +20,6 @@
       class="audio-player" 
       :playerid="1"
       :selected-play-time="selectedPlayTime"
-      @update-playback-time="e => updatePlaybackTime(e)"
     />
   </div>
 </template>
@@ -35,7 +33,6 @@ export default {
   name: 'Transcript',
   data() {
     return {
-      playbackTime: null,
       selectedPlayTime: 0,
       date: 'Jan. 14, 2021',
       transcript: {
@@ -81,6 +78,14 @@ export default {
   },
 
   computed: {
+    playbackTime() {
+      return this.$store.state.playbackTime;
+    },
+
+    isPlaying() {
+      return this.$store.state.isPlaying;
+    },
+
     formattedPhrases() {
       const phrases = this.sortPhrases(this.transcript.phrases);
       for (let i = 0; i < phrases.length - 1; i++) {
@@ -98,18 +103,34 @@ export default {
           phrases[i].text = this.removeOverlappingSubstring(phraseA.text, phraseB.text)
         }
       }
-      console.log(phrases)
       return phrases
     },
   },
 
   methods: {
-    selectPhrase(startTime) {
-      this.selectedPlayTime = startTime;
+    toggleAudio() {
+      this.$store.commit("toggleAudio");
     },
 
-    updatePlaybackTime(e) {
-      this.playbackTime = e;
+    playAudio() {
+      this.$store.commit("playAudio");
+    },
+
+    pauseAudio() {
+      this.$store.commit("pauseAudio");
+    },
+
+    log(stuff){
+      console.log(stuff);
+    },
+
+    selectPhrase(time) {
+      this.playAudio();
+      this.updatePlaybackTime(time);
+    },
+
+    updatePlaybackTime(time) {
+      this.$store.commit("updatePlaybackTime", time);
     },
 
     //sorts phrases based on start time
@@ -162,6 +183,7 @@ export default {
 
   .nav > i {
     font-size: 1.25rem;
+    cursor: pointer;
   }
 
   .nav > .fa-times {

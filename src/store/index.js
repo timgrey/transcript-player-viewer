@@ -2,16 +2,21 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
-    currentPlayTime: 0,
+    playbackTime: 0,
+    isPlaying: false,
   },
   mutations: {
-    changecurrentPlayTime(state, currentTime) {
-      state.currentPlayTime = currentTime
+    updatePlaybackTime(state, newTime) {
+      state.playbackTime = Number(newTime);
+    },
+    playAudio(state)  {
+      state.isPlaying = true;
+    },
+    pauseAudio(state) {
+      state.isPlaying = false;
+    },
+    toggleAudio(state) {
+      state.isPlaying = !state.isPlaying;
     }
   },
-  actions: {
-    currentPlayTime: state => state.currentPlayTime
-  },
-  modules: {
-  }
 })
